@@ -8,7 +8,7 @@ on:
 
 jobs:
   backend-tests:
-    name: Backend: запуск тестів
+    name: "Backend: запуск тестів"
     runs-on: ubuntu-latest
 
     steps:
