@@ -26,12 +26,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r ../requirements.txt
 
-      - - name: Запустити тести бекенду
-  working-directory: ./backend
-  run: |
-    pip install pytest pytest-asyncio httpx
-    pytest ../tests -q
-
+      - name: Запустити тести бекенду
+        working-directory: ./backend
+        run: |
+          pip install pytest pytest-asyncio httpx
+          pytest ../tests -q
 
   frontend-tests:
     name: "Frontend: перевірка доступності"
@@ -54,3 +53,4 @@ jobs:
         run: |
           sleep 2
           curl -f http://localhost:8001/index.html
+
