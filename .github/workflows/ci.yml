@@ -33,7 +33,7 @@ jobs:
           pytest ../tests -q
 
   frontend-tests:
-    name: Frontend: перевірка доступності
+    name: "Frontend: перевірка доступності"
     runs-on: ubuntu-latest
     needs: backend-tests
 
