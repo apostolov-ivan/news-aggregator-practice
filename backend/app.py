@@ -1,19 +1,17 @@
 import config
-from config import STUDENT_ID
-import feedparser
-	
-# ... існуючі імпорти і код ...
-	
-# Пам'ять для статей (словник: student_id -> список статей)
-news_store = {STUDENT_ID: []}
-
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
 from config import STUDENT_ID, SOURCES
+import feedparser
+
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import JSONResponse
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
+# Ініціалізація FastAPI
 app = FastAPI()
 
+# Дозволити запити з фронтенду
 origins = [
     "http://localhost:8001",
     "http://127.0.0.1:8001",
@@ -27,19 +25,35 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Студент ID (константа)
 STUDENT_ID = "Apostolov_47b86c25"
 
+# Фейкова база користувачів
 fake_users_db = {
     STUDENT_ID: {
         "username": STUDENT_ID,
         "full_name": STUDENT_ID,
-        "hashed_password": "1488911",  # НЕ рекомендується зберігати пароль так у продакшені
+        "hashed_password": "password123",  # лише для демонстрації!
         "disabled": False,
     }
 }
 
-# Пам'ять для збереження джерел (для кожного STUDENT_ID окремо)
+# Словники для збереження новин і джерел
+news_store = {STUDENT_ID: []}
 store = {STUDENT_ID: SOURCES.copy()}
+
+# --- Ендпоїнти ---
+
+@app.post("/token")
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    user = fake_users_db.get(form_data.username)
+    if not user or form_data.password != user["hashed_password"]:
+        return JSONResponse(status_code=400, content={"detail": "Incorrect username or password"})
+    return {"access_token": user["username"], "token_type": "bearer"}
+
+@app.get("/info")
+def get_info():
+    return {"student_id": STUDENT_ID}
 
 @app.get("/sources/{student_id}")
 def get_sources(student_id: str):
@@ -61,7 +75,6 @@ def add_source(student_id: str, payload: dict):
 def fetch_news(student_id: str):
     if student_id != STUDENT_ID:
         raise HTTPException(status_code=404, detail="Student not found")
-    # Очищаємо попередній кеш
     news_store[student_id].clear()
     fetched = 0
     for url in config.SOURCES:
@@ -82,6 +95,7 @@ def get_news(student_id: str):
     return {"articles": news_store[student_id]}
 
 analyzer = SentimentIntensityAnalyzer()
+
 @app.post("/analyze/{student_id}")
 def analyze_tone(student_id: str):
     if student_id != STUDENT_ID:
@@ -98,6 +112,13 @@ def analyze_tone(student_id: str):
             label = "negative"
         else:
             label = "neutral"
-        # Додаємо поля "sentiment" і "scores" в копію статті
         result.append({**art, "sentiment": label, "scores": scores})
     return {"analyzed": len(result), "articles": result}
+
+@app.on_event("startup")
+async def load_initial_sources() -> None:
+    student_id = getattr(config, "STUDENT_ID", None)
+    sources    = getattr(config, "SOURCES", [])
+    if student_id and isinstance(sources, list):
+        sources_store[student_id] = list(sources)
+        print(f"[startup] loaded {len(sources)} feeds for {student_id}")

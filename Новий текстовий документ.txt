@@ -1,3 +1,40 @@
+# ---------- 1. Базовий образ Nginx ----------
+FROM nginx:alpine
+
+# ---------- 2. Очищаємо дефолтну статику (опційно) ----------
+RUN rm -rf /usr/share/nginx/html/*
+
+# ---------- 3. Копіюємо статичні файли фронтенду ----------
+COPY frontend/ /usr/share/nginx/html/
+
+# ---------- 4. Виставляємо порт для HTTP ----------
+EXPOSE 80
+
+# ---------- 5. Запуск Nginx у foreground ----------
+CMD ["nginx", "-g", "daemon off;"]
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    volumes:
+      - ./config.py:/app/config.py:ro
+      - ./requirements.txt:/app/requirements.txt:ro
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "8001:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
 name: CI
 
 on:
@@ -52,4 +89,4 @@ jobs:
       - name: Перевірити доступність index.html
         run: |
           sleep 2
-          curl -f http://localhost:8001/index.htmll
+          curl -f http://localhost:8001/index.html
