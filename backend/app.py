@@ -14,13 +14,29 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 app = FastAPI()
 
-# Додамо CORS (поки що для localhost)
+origins = [
+    "http://localhost:8001",
+    "http://127.0.0.1:8001",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8001"],  # фронтенд на 8001
+    allow_origins=origins,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+STUDENT_ID = "Apostolov"
+
+fake_users_db = {
+    STUDENT_ID: {
+        "username": STUDENT_ID,
+        "full_name": STUDENT_ID,
+        "hashed_password": "1488911",  # НЕ рекомендується зберігати пароль так у продакшені
+        "disabled": False,
+    }
+}
 
 # Пам'ять для збереження джерел (для кожного STUDENT_ID окремо)
 store = {STUDENT_ID: SOURCES.copy()}
