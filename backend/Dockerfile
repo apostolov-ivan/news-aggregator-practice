@@ -4,9 +4,11 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копіюємо лише потрібне
-COPY backend/  ./app/
-COPY config.py ./
+# Копіюємо вміст папки backend у робочу папку /app
+COPY backend/ .
 
 EXPOSE 8000
+
+# Запускаємо uvicorn з модулем app (app.py у /app)
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+
