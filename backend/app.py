@@ -77,7 +77,7 @@ def fetch_news(student_id: str):
         raise HTTPException(status_code=404, detail="Student not found")
     news_store[student_id].clear()
     fetched = 0
-    for url in config.SOURCES:
+    for url in store.get(student_id, []):
         feed = feedparser.parse(url)
         for entry in getattr(feed, "entries", []):
             news_store[student_id].append({
@@ -120,5 +120,6 @@ async def load_initial_sources() -> None:
     student_id = getattr(config, "STUDENT_ID", None)
     sources    = getattr(config, "SOURCES", [])
     if student_id and isinstance(sources, list):
-        sources_store[student_id] = list(sources)
+        store[student_id] = list(sources)  # <-- fix тут
         print(f"[startup] loaded {len(sources)} feeds for {student_id}")
+
