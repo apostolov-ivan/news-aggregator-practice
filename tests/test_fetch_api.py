@@ -37,24 +37,35 @@ def test_fetch_and_get(monkeypatch):
     }
 
 def test_fetch_custom_feed(monkeypatch):
+    from backend.app import app, news_store, store
+    from fastapi.testclient import TestClient
+    import feedparser
+    from config import STUDENT_ID
+
+    # Очистити перед тестом
     news_store[STUDENT_ID] = []
     store[STUDENT_ID] = []
 
-    response = client.post(f"/sources/{STUDENT_ID}", json={"url": "http://test.com/rss"})
-    assert response.status_code == 200
-    assert "http://test.com/rss" in response.json()["sources"]
-
+    # Підміна feedparser ДО створення клієнта
     class DummyFeedCustom:
         bozo = 0
         entries = [{"title": "X", "link": "L", "published": "2025-04-28"}]
 
     monkeypatch.setattr(feedparser, "parse", lambda _: DummyFeedCustom())
 
+    client = TestClient(app)  # Створення після monkeypatch
+
+    # Додати нове RSS-джерело
+    response = client.post(f"/sources/{STUDENT_ID}", json={"url": "http://test.com/rss"})
+    assert response.status_code == 200
+    assert "http://test.com/rss" in response.json()["sources"]
+
+    # Виконати fetch
     r = client.post(f"/fetch/{STUDENT_ID}")
     assert r.status_code == 200
     assert r.json() == {"fetched": 1}
 
-    # Перевірити, що новина збережена
+    # Перевірити новину
     r_news = client.get(f"/news/{STUDENT_ID}")
     assert r_news.status_code == 200
     articles = r_news.json()["articles"]
