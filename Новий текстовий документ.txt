@@ -130,5 +130,4 @@ timeout /t 5 /nobreak
 curl http://localhost:8000/info
 for /f "tokens=*" %i in ('docker ps -q --filter ancestor=ghcr.io/apostolov/news_aggregator_practice-backend:latest') do docker stop %i
 
-echo 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 | docker login ghcr.io -u apostolov-ivan --password-stdin
 docker-compose up --build -d
