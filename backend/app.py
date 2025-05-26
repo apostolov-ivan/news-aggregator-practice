@@ -1,4 +1,3 @@
-import os
 import config
 from config import STUDENT_ID, SOURCES
 import feedparser
@@ -7,16 +6,12 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # директорія з app.py
-FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
-
-app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
-
+# Ініціалізація FastAPI
 app = FastAPI()
 
+# Дозволити запити з фронтенду
 origins = [
     "http://localhost:8001",
     "http://127.0.0.1:8001",
@@ -30,23 +25,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Студент ID (константа)
 STUDENT_ID = "Apostolov_47b86c25"
 
+# Фейкова база користувачів
 fake_users_db = {
     STUDENT_ID: {
         "username": STUDENT_ID,
         "full_name": STUDENT_ID,
-        "hashed_password": "password123",
+        "hashed_password": "password123",  # лише для демонстрації!
         "disabled": False,
     }
 }
 
+# Словники для збереження новин і джерел
 news_store = {STUDENT_ID: []}
 store = {STUDENT_ID: SOURCES.copy()}
 
-# --- Додаємо роздачу фронтенду ---
-app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
-# ----------------------------------
+# --- Ендпоїнти ---
 
 @app.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -81,7 +77,7 @@ def fetch_news(student_id: str):
         raise HTTPException(status_code=404, detail="Student not found")
     news_store[student_id].clear()
     fetched = 0
-    for url in store.get(student_id, []):
+    for url in config.SOURCES:
         feed = feedparser.parse(url)
         for entry in getattr(feed, "entries", []):
             news_store[student_id].append({
