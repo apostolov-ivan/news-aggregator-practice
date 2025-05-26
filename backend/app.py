@@ -103,12 +103,12 @@ def analyze_tone(student_id: str):
     articles = news_store.get(student_id, [])
     result = []
     for art in articles:
-        text = art.get("title", "")
+        text = art.get("summary", "") or art.get("description", "") or art.get("title", "")
         scores = analyzer.polarity_scores(text)
         comp = scores["compound"]
-        if comp >= 0.05:
+        if comp >= 0.02:  # знижений поріг позитиву
             label = "positive"
-        elif comp <= -0.05:
+        elif comp <= -0.02:  # знижений поріг негативу
             label = "negative"
         else:
             label = "neutral"
