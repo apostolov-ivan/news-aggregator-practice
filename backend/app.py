@@ -1,3 +1,4 @@
+import os
 import config
 from config import STUDENT_ID, SOURCES
 import feedparser
@@ -6,8 +7,13 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles  # <- додано
+from fastapi.staticfiles import StaticFiles
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # директорія з app.py
+FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
+
+app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
 
 app = FastAPI()
 
