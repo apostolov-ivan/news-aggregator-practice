@@ -90,3 +90,35 @@ jobs:
         run: |
           sleep 2
           curl -f http://localhost:8001/index.html
+
+def test_fetch_custom_feed(monkeypatch):
+    news_store[STUDENT_ID] = []
+    store[STUDENT_ID] = []
+
+    response = client.post(f"/sources/{STUDENT_ID}", json={"url": "http://test.com/rss"})
+    assert response.status_code == 200
+    assert "http://test.com/rss" in response.json()["sources"]
+
+    class DummyFeedCustom:
+        entries = [{"title": "X", "link": "L", "published": "2025-04-28"}]
+
+    monkeypatch.setattr(feedparser, "parse", lambda _: DummyFeedCustom())
+
+    r = client.post(f"/fetch/{STUDENT_ID}")
+    assert r.status_code == 200
+    assert r.json() == {"fetched": 1}
+
+def test_get_empty_sources():
+    store[STUDENT_ID] = []
+    res = client.get(f"/sources/{STUDENT_ID}")
+    assert res.status_code == 200
+    assert res.json() == {"sources": []}
+
+def test_add_and_get_source():
+    store[STUDENT_ID] = []
+    res1 = client.post(f"/sources/{STUDENT_ID}", json={"url": "<https://example.com/rss>"})
+    assert res1.status_code == 200
+    assert "<https://example.com/rss>" in res1.json()["sources"]
+
+    res2 = client.get(f"/sources/{STUDENT_ID}")
+    assert res2.json()["sources"] == ["<https://example.com/rss>"]
