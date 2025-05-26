@@ -3,11 +3,15 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    ports: ["8000:8000"]
+    ports:
+      - "8000:8000"
 
   frontend:
     build:
       context: .
       dockerfile: frontend/Dockerfile
-    ports: ["8001:80"]
-    depends_on: [backend]
+    ports:
+      - "8001:80"
+    depends_on:
+      - backend
+
