@@ -27,6 +27,19 @@ async function loadData() {
       date: a.published ? new Date(a.published) : new Date()
     }));
 
+    if (allArticles.length === 0) { 
+  allArticles = [
+    {
+      title: "Тестова новина",
+      link: "https://example.com",
+      published: new Date().toISOString(),
+      sentiment: "positive",
+      scores: {compound: 0.8},
+      date: new Date()
+    }
+  ];
+}
+
     // Рендеримо вміст
     render();
   } catch (err) {

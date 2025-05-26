@@ -122,3 +122,10 @@ def test_add_and_get_source():
 
     res2 = client.get(f"/sources/{STUDENT_ID}")
     assert res2.json()["sources"] == ["<https://example.com/rss>"]
+
+docker run --rm -p 8000:8000 docker-compose
+
+docker run -d -p 8000:8000 ghcr.io/apostolov-ivan/news_aggregator_practice-backend:latest 
+timeout /t 5 /nobreak
+curl http://localhost:8000/info
+for /f "tokens=*" %i in ('docker ps -q --filter ancestor=ghcr.io/apostolov/news_aggregator_practice-backend:latest') do docker stop %i
