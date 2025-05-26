@@ -37,22 +37,19 @@ def test_fetch_and_get(monkeypatch):
     }
 
 def test_fetch_custom_feed(monkeypatch):
-    # Очистити перед тестом
     news_store[STUDENT_ID] = []
     store[STUDENT_ID] = []
 
-    # Додати нове RSS-джерело
     response = client.post(f"/sources/{STUDENT_ID}", json={"url": "http://test.com/rss"})
     assert response.status_code == 200
     assert "http://test.com/rss" in response.json()["sources"]
 
-    # Мокаємо feedparser
     class DummyFeedCustom:
+        bozo = 0
         entries = [{"title": "X", "link": "L", "published": "2025-04-28"}]
 
     monkeypatch.setattr(feedparser, "parse", lambda _: DummyFeedCustom())
 
-    # Fetch
     r = client.post(f"/fetch/{STUDENT_ID}")
     assert r.status_code == 200
     assert r.json() == {"fetched": 1}
