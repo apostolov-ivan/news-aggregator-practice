@@ -77,7 +77,7 @@ def fetch_news(student_id: str):
         raise HTTPException(status_code=404, detail="Student not found")
     news_store[student_id].clear()
     fetched = 0
-    for url in config.SOURCES:
+    for url in store.get(student_id, []):
         feed = feedparser.parse(url)
         for entry in getattr(feed, "entries", []):
             news_store[student_id].append({
